@@ -1,0 +1,175 @@
+pico-8 cartridge // http://www.pico-8.com
+version 38
+__lua__
+#include lib/math.lua
+#include lib/log.lua
+
+frame_debug = {
+	enabled = true,
+	current_frame = 0,
+	show_boxes = false
+}
+
+ function update_frame_debug()
+	if frame_debug.enabled then
+		if btnp(0) then
+			frame_debug.current_frame = positive_mod(frame_debug.current_frame - 1, #frames)
+		end
+		if btnp(1) then
+			frame_debug.current_frame = (frame_debug.current_frame + 1) % #frames
+		end
+
+		if btnp(4) then
+			frame_debug.show_boxes = not frame_debug.show_boxes
+		end
+	end
+end
+
+function draw_frame_debug()
+	if frame_debug.enabled then
+		local pos = vec2(30, 30)
+		local f = frames[frame_debug.current_frame + 1]
+		draw_frame(f, pos, frame_debug.show_boxes)
+	end
+end
+
+
+-- frames
+-- coordinates origin for every position/sprite/hitbox is upper left
+function make_box(_pos, _size)
+	return {
+		min = _pos,
+		max = _pos + _size,
+	}
+end
+
+function draw_box(_box, _pos, _color)
+	local min = _pos + _box.min
+	local max = _pos + _box.max
+	rect(
+		min.x,
+		min.y,
+		max.x - 1,
+		max.y - 1,
+		_color
+	)
+end
+
+function make_frame(_spr, _size, _origin, _hitboxes, _hurtboxes)
+	return {
+    	spr = _spr,
+    	size = _size,
+    	origin = _origin,
+    	hitboxes = _hitboxes or {},
+    	hurtboxes = _hurtboxes or {},
+  	}
+end
+
+function draw_frame(_frame, _pos, _draw_boxes)
+
+	local x = _pos.x
+	local y = _pos.y
+
+	spr(_frame.spr, x, y, _frame.size.x, _frame.size.y)
+
+	if _draw_boxes then
+		for _i, _b in ipairs(_frame.hurtboxes) do
+			draw_box(_b, _pos, 11)
+		end
+
+		for _i, _b in ipairs(_frame.hitboxes) do
+			draw_box(_b, _pos, 8)
+		end
+	end
+end
+
+frames = {
+	make_frame(
+		-- sprite
+		0, vec2(1, 2),
+		-- origin
+		vec2(3, 16),
+		-- hitboxes
+		{ 
+		},
+		-- hurtboxes
+		{
+			make_box(vec2(2, 3), vec2(3, 13)),
+			make_box(vec2(1, 7), vec2(5, 3)),
+		}
+	),
+	make_frame(
+		-- sprite
+		1, vec2(1, 2),
+		-- origin
+		vec2(3, 16),
+		-- hitboxes
+		{ 
+		},
+		-- hurtboxes
+		{
+			make_box(vec2(2, 3), vec2(3, 13)),
+			make_box(vec2(1, 7), vec2(5, 3)),
+		}
+	),
+	make_frame(
+		-- sprite
+		2, vec2(1, 2),
+		-- origin
+		vec2(3, 16),
+		-- hitboxes
+		{ 
+		},
+		-- hurtboxes
+		{
+			make_box(vec2(2, 3), vec2(3, 13)),
+			make_box(vec2(2, 6), vec2(5, 3)),
+		}
+	),
+	make_frame(
+		-- sprite
+		3, vec2(1, 2),
+		-- origin
+		vec2(3, 16),
+		-- hitboxes
+		{ 
+			make_box(vec2(5, 6), vec2(4, 2)),
+		},
+		-- hurtboxes
+		{
+			make_box(vec2(2, 3), vec2(3, 13)),
+		}
+	),
+}
+
+idle_animation = { 0, 0, 0, 1, 1, 1 }
+current_animation_frame = 0
+
+function _update()
+	update_frame_debug()
+end
+
+function _draw()
+	cls(0)
+
+	draw_frame_debug()
+	draw_log()
+end
+
+__gfx__
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+08088000808880000888800080088000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+808ff000080ff000800ff000088ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000f0000000f0000000f0000000f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00f7000000f7000000f770f000f77fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0f77f0000f77f0000f777f000f777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0fff7f000f777f000f7770000f777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0077700000ff700000ff70000ff77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00777000007770000077700000777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00707000007070000070700000707000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00707000007070000070700000707000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00707000007070000070700000707000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00707000007070000070700000707000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0ff0ff000ff0ff000ff0ff000ff0ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
