@@ -47,7 +47,7 @@ function vec2_mt:is_zero(_threshold)
   return abs(self.x) <= _threshold and abs(self.y) <= _threshold
 end
 
-function vec2_mt:copy(_v)
+function vec2_mt:copy()
   return vec2(self.x, self.y)
 end
 
@@ -90,11 +90,19 @@ function round(_x)
   end
 end
 
+function bool_to_int(_b)
+  if _b then
+    return 1
+  else
+    return 0
+  end
+end
+
 function bool_to_sign(_b)
   if _b then
-    return 1.0
+    return 1
   else
-    return -1.0
+    return -1
   end
 end
 
