@@ -17,6 +17,11 @@ function draw_point(_x, _y, _size)
 	line(_x, _y + 1, _x, _y + _size)
 end
 
+mouse_buttons = 0
+prev_mouse_buttons = 0
+mouse_buttons_pressed = 0
+mouse_x, mouse_y = 0, 0
+
 game_update = _update
 _update = function()
 
@@ -34,21 +39,40 @@ _update = function()
 		if game_update ~= nil then
 			game_update()
 		end
-	elseif tool_mode == 1 then
-		if btnp(0) then
-			frame_tool.current_frame = positive_mod(frame_tool.current_frame - 1, #frames)
-			frame_tool.current_box = -1
-		end
-		if btnp(1) then
-			frame_tool.current_frame = (frame_tool.current_frame + 1) % #frames
-			frame_tool.current_box = -1
-		end
+	else
+		-- MOUSE INPUT
+		mouse_x, mouse_y = stat(32), stat(33)
+		prev_mouse_buttons = mouse_buttons
+		mouse_buttons = stat(34)
+		mouse_buttons_pressed = bxor(prev_mouse_buttons, mouse_buttons) & mouse_buttons
 
-		if btnp(4) then
-			frame_tool.show_boxes = not frame_tool.show_boxes
-		end
-		if btnp(5) then
-			frame_tool.flip = not frame_tool.flip
+		if tool_mode == 1 then
+			local _f = frames[frame_tool.current_frame+1]
+
+			if frame_tool.current_box >= 0 then
+				local _b = _f.boxes[frame_tool.current_box+1]
+
+				if btn(4) then
+					if (btnp(0)) _b.max_x -= 1
+					if (btnp(1)) _b.max_x += 1
+					if (btnp(2)) _b.max_y -= 1
+					if (btnp(3)) _b.max_y += 1
+				else
+					if (btnp(0)) _b.min_x -= 1
+					if (btnp(1)) _b.min_x += 1
+					if (btnp(2)) _b.min_y -= 1
+					if (btnp(3)) _b.min_y += 1
+				end
+			else
+				if btnp(0) then
+					frame_tool.current_frame = positive_mod(frame_tool.current_frame - 1, #frames)
+					frame_tool.current_box = -1
+				end
+				if btnp(1) then
+					frame_tool.current_frame = (frame_tool.current_frame + 1) % #frames
+					frame_tool.current_box = -1
+				end
+			end
 		end
 	end
 
@@ -90,65 +114,98 @@ _draw = function()
 			game_draw()
 		end
 	else
-		local _mouse_x, _mouse_y = stat(32), stat(33)
-		local _mouse_buttons = stat(34)
+		function draw_button(_x, _y, _text, _col1, _col2)
+			local _w = print(_text, 0, -9999) + 2
+			local _min_x, _min_y, _max_x, _max_y = _x, _y, _x + _w, _y + 6
+
+			local _pressed = false
+			if (mouse_buttons_pressed & 0x1) > 0 then
+				if collision.point_box(mouse_x, mouse_y, _min_x, _min_y, _max_x, _max_y) then
+					_pressed = true
+				end
+			end
+
+			local _box_col = _col1
+			local _text_col = _col2
+			if _pressed then
+				_box_col = _col2
+				_text_col = _col1
+			end
+
+			rectfill(_min_x, _min_y, _max_x, _max_y, _box_col)
+			print(_text, _min_x + 1, _min_y + 1, _text_col)
+
+			return _pressed
+		end
 
 		cls(5)
 		if tool_mode == 1 then
 
-			local _f = frames[frame_tool.current_frame + 1]
-			local _origin_x, _origin_y = 64, 64
+			local _f = frames[frame_tool.current_frame+1]
+			local _origin_x, _origin_y = 64, 84
 			draw_frame(_f, _origin_x, _origin_y, frame_tool.flip, frame_tool.show_boxes and frame_tool.current_box < 0)
 
 			if frame_tool.current_box >= 0 then
-				local _abs_box = make_absolute_box(_f, _f.boxes[frame_tool.current_box], _origin_x, _origin_y, frame_tool.flip)
+				local _abs_box = make_absolute_box(_f, _f.boxes[frame_tool.current_box+1], _origin_x, _origin_y, frame_tool.flip)
 				draw_box(_abs_box, 0, 0, _f.spr_w, false)
 			end
 
 			color(14)
 			draw_point(_origin_x, _origin_y, 1)
 
-			local _box_count = 0
-			local _base_x = 1
-			local _base_y = 13
+			-- MENU
+			cursor(1, 1, 7)
+			print("frame "..frame_tool.current_frame)
 
+
+			local _button_x = 1
+			local _button_y = 7
+			local _button_pressed = false
+
+			if draw_button(_button_x, _button_y, "flip: "..bool_to_int(frame_tool.flip), 6, 7) then
+				frame_tool.flip = not frame_tool.flip
+				_button_pressed = true
+			end
+			_button_y += 8
+
+			if draw_button(_button_x, _button_y, "show_boxes: "..bool_to_int(frame_tool.show_boxes), 6, 7) then
+				frame_tool.show_boxes = not frame_tool.show_boxes
+				_button_pressed = true
+			end
+			_button_y += 8
+
+			local _pressed_box = -1
 			for _i, _b in ipairs(_f.boxes) do
+				_i -= 1
 				local _text = "".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y
-				local _w = print(_text, 0, -9999) + 2
-				local _y = _base_y + 8*_box_count
-				local _min_x, _min_y, _max_x, _max_y = _base_x, _y, _base_x + _w, _y + 6
-
-				if (_mouse_buttons & 0x1) > 0 then
-					if collision.point_box(_mouse_x, _mouse_y, _min_x, _min_y, _max_x, _max_y) then
-						frame_tool.current_box = _i
-					elseif frame_tool.current_box == _i then
-						frame_tool.current_box = -1
-					end
-				end
-
-				if frame_tool.current_box == _i then
-					rectfill(0, _min_y, _min_x, _max_y, 7)
-				end
-
 				local _col1, _col2 = 0, 0
 				if (_b.type == "hit") _col1 = 2 _col2 = 8
 				if (_b.type == "hurt") _col1 = 3 _col2 = 11
-				rectfill(_min_x, _min_y, _max_x, _max_y, _col1)
-				print(_text, _min_x + 1, _min_y + 1, _col2)
 
-				_box_count += 1
+				if frame_tool.current_box == _i then
+					rectfill(0, _button_y, 1, _button_y + 6, 7)
+				end
+
+				if draw_button(_button_x, _button_y, _text, _col1, _col2) then
+					_pressed_box = _i
+					_button_pressed = true
+				end
+
+				_button_y += 8
 			end
 
-			cursor(1, 1, 7)
-			print("frame "..frame_tool.current_frame)
-			print("flip: "..bool_to_int(frame_tool.flip))
+			if _pressed_box >= 0 then
+				frame_tool.current_box = _pressed_box
+			elseif (mouse_buttons_pressed & 0x1) > 0 and not _button_pressed then
+				frame_tool.current_box = -1
+			end
 		end
 
 		-- DRAW_MOUSE
 		color(0)
-		draw_point(_mouse_x, _mouse_y+1, 2)
+		draw_point(mouse_x, mouse_y+1, 2)
 		color(7)
-		draw_point(_mouse_x, _mouse_y, 2)
+		draw_point(mouse_x, mouse_y, 2)
 	end
 
 	-- BEZIER CURVE DEBUGGER
