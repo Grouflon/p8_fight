@@ -97,30 +97,32 @@ end
 function make_animation_player()
 	return {
 		animation = nil,
-		frame = -1,
+		frame = 0,
 		is_looping = false,
+		is_playing = false,
 	}
 end
 
-function play_animation(_player, _animation, _loop)
-	if _player.animation == _animation then
-		return
-	end
-
+function play_animation(_player, _animation, _loop, _start_frame)
 	_player.animation = _animation
-	_player.frame = 0
+	_player.frame = _start_frame or 0
 	_player.is_looping = _loop
+	_player.is_playing = true
+end
 
+function stop_animation(_player)
+	_player.is_playing = false
 end
 
 function update_animation(_player)
-	if _player.animation ~= nil then
+	if _player.animation ~= nil and _player.is_playing then
 		_player.frame = (_player.frame + 1)
 		if _player.frame >= #_player.animation then
 			if _player.is_looping then
 				_player.frame = 0
 			else
-				_player.animation = nil
+				_player.is_playing = false
+				_player.frame -= 1
 			end
 		end
 	end

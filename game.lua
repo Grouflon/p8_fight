@@ -55,9 +55,13 @@ player_sm = {
 			if direction ~= 0 then
 				player_flip = direction < 0
 				player_pos.x = player_pos.x + direction * speed
-				play_animation(animation_player, animations.walk, true)
+				if animation_player.animation ~= animations.walk then
+					play_animation(animation_player, animations.walk, true)
+				end
 			else
-				play_animation(animation_player, animations.idle, true)
+				if animation_player.animation ~= animations.idle then
+					play_animation(animation_player, animations.idle, true)
+				end
 			end
 
 			if btnp(4) then
@@ -82,7 +86,7 @@ player_sm = {
 			play_animation(animation_player, animation, false)
 		end,
 		update = function()
-			if (animation_player.animation == nil) then
+			if (not animation_player.is_playing) then
 				sm_set_state(player_sm, "idle")
 			end
 		end,
