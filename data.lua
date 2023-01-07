@@ -5,13 +5,10 @@ frames = {
 		0, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(1, 7, 5, 3),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 1, 7, 6, 10),
 		}
 	),
 	-- 1 - IDLE
@@ -20,13 +17,10 @@ frames = {
 		1, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(1, 7, 5, 3),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 1, 7, 6, 10),
 		}
 	),
 	-- 2 - PUNCH
@@ -35,13 +29,10 @@ frames = {
 		2, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(2, 6, 5, 3),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 2, 6, 7, 9),
 		}
 	),
 	-- 3 - PUNCH
@@ -50,13 +41,10 @@ frames = {
 		3, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
+		-- boxes
 		{ 
-			make_box(5, 6, 3, 2),
-		},
-		-- hurtboxes
-		{
-			make_box(2, 3, 3, 13),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hit", 5, 6, 8, 8),
 		}
 	),
 	-- 4 - WALK
@@ -65,13 +53,10 @@ frames = {
 		4, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(1, 7, 5, 3),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 1, 7, 6, 10),
 		}
 	),
 	-- 5 - WALK
@@ -80,13 +65,10 @@ frames = {
 		5, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(1, 7, 5, 3),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 1, 7, 6, 10),
 		}
 	),
 	-- 6 - KICK
@@ -95,13 +77,10 @@ frames = {
 		6, 1, 2, false, false,
 		-- origin
 		3, 16,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 3, 3, 13),
-			make_box(5, 8, 2, 5),
+			make_box("hurt", 2, 3, 5, 16),
+			make_box("hurt", 5, 8, 7, 13),
 		}
 	),
 	-- 7 - KICK
@@ -110,14 +89,11 @@ frames = {
 		7, 2, 2, false, false,
 		-- origin
 		4, 16,
-		-- hitboxes
+		-- boxes
 		{ 
-			make_box(7, 8, 5, 3),
-		},
-		-- hurtboxes
-		{
-			make_box(2, 3, 3, 7),
-			make_box(4, 7, 3, 9),
+			make_box("hurt", 2, 3, 5, 10),
+			make_box("hurt", 4, 7, 7, 16),
+			make_box("hit", 7, 8, 12, 11),
 		}
 	),
 	-- 8 - JUMP0
@@ -126,13 +102,10 @@ frames = {
 		9, 1, 1, false, false,
 		-- origin
 		4, 8,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 0, 3, 7),
-			make_box(1, 3, 5, 3),
+			make_box("hurt", 2, 0, 5, 7),
+			make_box("hurt", 1, 3, 6, 6),
 		}
 	),
 	-- 9 - JUMP1
@@ -141,13 +114,10 @@ frames = {
 		10, 1, 1, false, false,
 		-- origin
 		4, 8,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 1, 3, 5),
-			make_box(1, 2, 5, 3),
+			make_box("hurt", 2, 1, 5, 6),
+			make_box("hurt", 1, 2, 6, 5),
 		}
 	),
 	-- 10 - JUMP2
@@ -156,13 +126,10 @@ frames = {
 		9, 1, 1, true, true,
 		-- origin
 		4, 8,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 0, 3, 7),
-			make_box(1, 2, 5, 3),
+			make_box("hurt", 2, 0, 5, 7),
+			make_box("hurt", 1, 2, 6, 5),
 		}
 	),
 	-- 11 - JUMP3
@@ -171,13 +138,10 @@ frames = {
 		10, 1, 1, true, true,
 		-- origin
 		4, 8,
-		-- hitboxes
-		{ 
-		},
-		-- hurtboxes
+		-- boxes
 		{
-			make_box(2, 2, 3, 5),
-			make_box(1, 3, 5, 3),
+			make_box("hurt", 2, 2, 5, 7),
+			make_box("hurt", 1, 3, 6, 6),
 		}
 	),
 	-- 12 - JUMP KICK
@@ -186,14 +150,11 @@ frames = {
 		25, 2, 1, false, false,
 		-- origin
 		4, 8,
-		-- hitboxes
+		-- boxes
 		{ 
-			make_box(6, 5, 6, 3),
-		},
-		-- hurtboxes
-		{
-			make_box(2, 0, 4, 7),
-			make_box(1, 3, 8, 3),
+			make_box("hurt", 2, 0, 6, 7),
+			make_box("hurt", 1, 3, 9, 6),
+			make_box("hit", 6, 5, 12, 8),
 		}
 	),
 }

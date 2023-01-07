@@ -1,36 +1,8 @@
 poke(0x5F5C, 255) -- kill autofire
 
-frame_debug = {
-	enabled = true,
-	current_frame = 0,
-	flip = false,
-	show_boxes = false
-}
-
-function update_frame_debug()
-	if frame_debug.enabled then
-		if btnp(0) then
-			frame_debug.current_frame = positive_mod(frame_debug.current_frame - 1, #frames)
-		end
-		if btnp(1) then
-			frame_debug.current_frame = (frame_debug.current_frame + 1) % #frames
-		end
-
-		if btnp(4) then
-			frame_debug.show_boxes = not frame_debug.show_boxes
-		end
-		if btnp(5) then
-			frame_debug.flip = not frame_debug.flip
-		end
-	end
-end
-
-function draw_frame_debug()
-	if frame_debug.enabled then
-		local f = frames[frame_debug.current_frame + 1]
-		draw_frame(f, 30, 30, frame_debug.flip, frame_debug.show_boxes)
-	end
-end
+w0 = 32
+w1 = 10
+h = 26
 
 function sm_set_state(_sm, _state)
 	add(_sm.transition_queue, _state)
@@ -179,75 +151,15 @@ function compute_jump_position(_jump, _t)
 	return vec2(x, y)
 end
 
-w0 = 32
-w1 = 11
-h = 26
-
 function _update()
-	update_frame_debug()
-
 	sm_update(player_sm)
 
-	if false then
-		if btn(5) then
-			if btn(0) then
-				w1 = w1 - 1
-			end
-			if btn(1) then
-				w1 = w1 + 1
-			end
-			w1 = mid(w1, -w0, w0)
-			if btn(2) then
-				h = h + 1
-			end
-			if btn(3) then
-				h = h - 1
-			end
-		end
-
-		if btn(4) then
-			if btn(0) then
-				w0 = w0 - 1
-			end
-			if btn(1) then
-				w0 = w0 + 1
-			end
-			w1 = mid(w1, -w0, w0)
-		end
-	end
+	
 end
 
 function _draw()
 	cls(0)
 
 	draw_animation(animation_player, player_pos.x, player_pos.y, player_flip)
-	draw_frame_debug()
-
-	if false then
-		local _jump = make_jump(14, 100, w0, w1, h)
-
-		pset(_jump.p0.x, _jump.p0.y, 8)
-		pset(_jump.p1.x, _jump.p1.y, 8)
-		pset(_jump.p2.x, _jump.p2.y, 8)
-		pset(_jump.p3.x, _jump.p3.y, 8)
-
-		color(6)
-		line(_jump.p0.x, _jump.p0.y, _jump.p0.x, _jump.p0.y)
-
-		for i=0,10 do
-			local p = compute_jump_position(_jump, i/10)
-
-			pset(p.x, p.y)
-			--line(p.x, p.y)
-		end
-		print("w0:"..w0)
-		print("w1:"..w1)
-		print("h:"..h)
-	end
-
-	draw_log()
-
-	print(stat(7))
-
 	update_animation(animation_player)
 end

@@ -140,6 +140,13 @@ function collision.segment_segment(_p0_x, _p0_y, _p1_x, _p1_y, _p2_x, _p2_y, _p3
   return false
 end
 
+function collision.point_box(_x, _y, _x_min, _y_min, _x_max, _y_max)
+  return not (
+    _x < _x_min or _x > _x_max or
+    _y < _y_min or _y > _y_max
+  )
+end
+
 -- easing {}
 easing = {}
 

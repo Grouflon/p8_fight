@@ -3,9 +3,11 @@ version 38
 __lua__
 #include lib/math.lua
 #include lib/log.lua
-#include frame.lua
+#include animation.lua
 #include data.lua
 #include game.lua
+
+#include tools.lua
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000008888000000000800000000000000000000000000000000000000000

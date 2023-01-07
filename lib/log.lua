@@ -16,7 +16,7 @@ function log(_str, _c)
 end
 
 function draw_log()
-
+  cursor(1, 1, 7)
   local _i = #logs
   local _y = 0
   while _i > 0 do
