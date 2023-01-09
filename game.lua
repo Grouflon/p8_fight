@@ -32,13 +32,15 @@ function sm_dequeue_transitions(_sm)
 end
 
 animation_player = make_animation_player()
-player_pos = vec2(50, 50)
+sub_animation_player = make_animation_player()
+ground_height = 50
+player_pos = vec2(50, ground_height)
 player_flip = false
 next_attack_type = ""
 player_sm = {
 	idle = {
 		enter = function()
-			play_animation(animation_player, animations.idle, true)
+			play_animation_player(animation_player, animations.idle, true)
 		end,
 		update = function()
 
@@ -56,11 +58,11 @@ player_sm = {
 				player_flip = direction < 0
 				player_pos.x = player_pos.x + direction * speed
 				if animation_player.animation ~= animations.walk then
-					play_animation(animation_player, animations.walk, true)
+					play_animation_player(animation_player, animations.walk, true)
 				end
 			else
 				if animation_player.animation ~= animations.idle then
-					play_animation(animation_player, animations.idle, true)
+					play_animation_player(animation_player, animations.idle, true)
 				end
 			end
 
@@ -83,7 +85,7 @@ player_sm = {
 	attack = {
 		enter = function()
 			animation = animations[next_attack_type]
-			play_animation(animation_player, animation, false)
+			play_animation_player(animation_player, animation, false)
 		end,
 		update = function()
 			if (not animation_player.is_playing) then
@@ -95,7 +97,7 @@ player_sm = {
 	},
 	jump = {
 		enter = function()
-			play_animation(animation_player, animations.jump, true)
+			play_animation_player(animation_player, animations.jump, true)
 
 			jump = make_jump(player_pos.x, player_pos.y - 3, jump_direction*w0, jump_direction*w1, h)
 			jump_t = 0
@@ -103,22 +105,27 @@ player_sm = {
 		update = function()
 
 			if btnp(5) then
-				play_animation(animation_player, animations.jump_kick, true)
+				play_animation_player(sub_animation_player, animations.jump_kick, true)
 			end
+			local _jump_movement_x, _jump_movement_y = poll_animation_player_movement(animation_player)
+			player_pos += vec2(_jump_movement_x*jump_direction, _jump_movement_y)
 
 			local _t = jump_t / jump_duration
 
-			player_pos = compute_jump_position(jump, _t)
+			--player_pos = compute_jump_position(jump, _t)
 
-			if _t >= 1 then
-				player_pos = jump.p3:copy()
-				player_pos.y = player_pos.y + 3
+			if player_pos.y >= ground_height then
+			--if _t >= 1 then
+				player_pos.y = ground_height
+				--player_pos = jump.p3:copy()
+				--player_pos.y = player_pos.y + 3
 				jump = nil
 				sm_set_state(player_sm, "idle")
 			end
 			jump_t = jump_t + 1
 		end,
 		exit = function()
+			stop_animation_player(sub_animation_player)
 		end,
 	},
 	state = "",
@@ -164,6 +171,11 @@ end
 function _draw()
 	cls(0)
 
-	draw_animation(animation_player, player_pos.x, player_pos.y, player_flip)
-	update_animation(animation_player)
+	if sub_animation_player.is_playing then
+		draw_animation_player(sub_animation_player, player_pos.x, player_pos.y, player_flip)
+	else
+		draw_animation_player(animation_player, player_pos.x, player_pos.y, player_flip)
+	end
+	update_animation_player(animation_player)
+	update_animation_player(sub_animation_player)
 end

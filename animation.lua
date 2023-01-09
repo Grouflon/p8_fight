@@ -10,7 +10,7 @@ function make_box(_type, _min_x, _min_y, _max_x, _max_y)
 end
 
 function draw_box(_box, _x, _y, _w, _flip, _color)
-
+	assert(_box ~= nil)
 	if _color == nil then
 		_color = 7
 		if (_box.type == "hit") _color = 8
@@ -47,6 +47,7 @@ function make_frame(_spr, _spr_w, _spr_h, _flip_x, _flip_y, _origin_x, _origin_y
 end
 
 function get_frame_upperleft_corner(_frame, _x, _y, _flip)
+	assert(_frame ~= nil)
 	_flip = _flip or false
 	_flip = _flip ~= _frame.flip_x
 
@@ -59,6 +60,8 @@ function get_frame_upperleft_corner(_frame, _x, _y, _flip)
 end
 
 function make_absolute_box(_frame, _box, _x, _y, _flip)
+	assert(_frame ~= nil)
+	assert(_box ~= nil)
 	_flip = _flip or false
 	_flip = _flip ~= _frame.flip_x
 
@@ -82,7 +85,7 @@ function make_absolute_box(_frame, _box, _x, _y, _flip)
 end
 
 function draw_frame(_frame, _x, _y, _flip, _draw_boxes)
-
+	assert(_frame ~= nil)
 	local _corner_x, _corner_y = get_frame_upperleft_corner(_frame, _x, _y, _flip)
 	spr(_frame.spr, _corner_x, _corner_y, _frame.spr_w, _frame.spr_h, _flip, _frame.flip_y)
 
@@ -94,27 +97,65 @@ function draw_frame(_frame, _x, _y, _flip, _draw_boxes)
 	end
 end
 
+function get_animation_extent(_animation)
+	assert(_animation ~= nil)
+	local _min_x, _min_y, _max_x, _max_y = 0,0,0,0
+	local _pos_x, _pos_y = 0,0
+
+	for _i, _f in ipairs(_animation) do
+		_pos_x += _f.movement[1]
+		_pos_y += _f.movement[2]
+		_min_x = min(_pos_x, _min_x)
+		_min_y = min(_pos_y, _min_y)
+		_max_x = max(_pos_x, _max_x)
+		_max_y = max(_pos_y, _max_y)
+	end
+	return _min_x, _min_y, _max_x, _max_y
+end
+
+function get_animation_movement(_animation, _start_frame, _end_frame)
+	assert(_animation ~= nil)
+	_start_frame = _start_frame or 0
+	_end_frame = _end_frame or (#_animation - 1)
+
+	local _x, _y = 0, 0
+	for _i = _start_frame, _end_frame do
+		local _f = _animation[_i+1]
+		_x += _f.movement[1]
+		_y += _f.movement[2]
+	end
+	return _x, _y
+end
+
 function make_animation_player()
 	return {
 		animation = nil,
 		frame = 0,
 		is_looping = false,
 		is_playing = false,
+		movement_x = 0,
+		movement_y = 0
 	}
 end
 
-function play_animation(_player, _animation, _loop, _start_frame)
+function play_animation_player(_player, _animation, _loop, _start_frame)
+	assert(_player ~= nil)
+	assert(_animation ~= nil)
 	_player.animation = _animation
 	_player.frame = _start_frame or 0
 	_player.is_looping = _loop
 	_player.is_playing = true
+	_player.movement_x = _player.animation[_player.frame+1].movement[1]
+	_player.movement_y = _player.animation[_player.frame+1].movement[2]
 end
 
-function stop_animation(_player)
+function stop_animation_player(_player)
+	assert(_player ~= nil)
 	_player.is_playing = false
 end
 
-function update_animation(_player)
+function update_animation_player(_player)
+	assert(_player ~= nil)
 	if _player.animation ~= nil and _player.is_playing then
 		_player.frame = (_player.frame + 1)
 		if _player.frame >= #_player.animation then
@@ -125,12 +166,28 @@ function update_animation(_player)
 				_player.frame -= 1
 			end
 		end
+
+		-- add movement
+		if _player.is_playing then
+			_player.movement_x += _player.animation[_player.frame+1].movement[1]
+			_player.movement_y += _player.animation[_player.frame+1].movement[2]
+		end
 	end
 end
 
-function draw_animation(_player, _x, _y, _flip)
+function poll_animation_player_movement(_player)
+	assert(_player ~= nil)
+	local _x, _y = _player.movement_x, _player.movement_y
+	_player.movement_x = 0
+	_player.movement_y = 0
+	return _x, _y
+end
+
+function draw_animation_player(_player, _x, _y, _flip)
+	assert(_player ~= nil)
 	if _player.animation ~= nil then
-		local animation_frame = frames[_player.animation[_player.frame + 1] + 1]
-		draw_frame(animation_frame, _x, _y, _flip)
+		local _animation_frame = _player.animation[_player.frame+1]
+		local _game_frame = frames[_animation_frame.frame+1]
+		draw_frame(_game_frame, _x, _y, _flip)
 	end 
 end
