@@ -106,6 +106,10 @@ function bool_to_sign(_b)
   end
 end
 
+function xor(_a, _b)
+  return (_a or _b) and not (_a and _b)
+end
+
 function positive_mod(_value, _mod)
   return ((_value%_mod)+_mod)%_mod
 end
@@ -140,7 +144,7 @@ function collision.segment_segment(_p0_x, _p0_y, _p1_x, _p1_y, _p2_x, _p2_y, _p3
   return false
 end
 
-function collision.point_box(_x, _y, _x_min, _y_min, _x_max, _y_max)
+function collision.point_AABB(_x, _y, _x_min, _y_min, _x_max, _y_max)
   return not (
     _x < _x_min or _x > _x_max or
     _y < _y_min or _y > _y_max

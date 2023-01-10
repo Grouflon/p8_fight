@@ -63,7 +63,7 @@ function make_absolute_box(_frame, _box, _x, _y, _flip)
 	assert(_frame ~= nil)
 	assert(_box ~= nil)
 	_flip = _flip or false
-	_flip = _flip ~= _frame.flip_x
+	_flip = xor(_flip, _frame.flip_x)
 
 	local _corner_x, _corner_y = get_frame_upperleft_corner(_frame, _x, _y, _flip)
 
@@ -87,7 +87,8 @@ end
 function draw_frame(_frame, _x, _y, _flip, _draw_boxes)
 	assert(_frame ~= nil)
 	local _corner_x, _corner_y = get_frame_upperleft_corner(_frame, _x, _y, _flip)
-	spr(_frame.spr, _corner_x, _corner_y, _frame.spr_w, _frame.spr_h, _flip, _frame.flip_y)
+	local _spr_flip_x = xor(_flip, _frame.flip_x) -- all the flipping argument thing is super messy. I need to clarify and rewrite this
+	spr(_frame.spr, _corner_x, _corner_y, _frame.spr_w, _frame.spr_h, _spr_flip_x, _frame.flip_y)
 
 	if _draw_boxes then
 		for _i, _b in ipairs(_frame.boxes) do

@@ -3,7 +3,7 @@ poke(0x5F2D, 0x1) -- enable devkit mode
 tool_mode = 0 -- 0 is game, 1 is frame editor, 2 is animation editor
 
 frame_tool = {
-	current_frame = 0,
+	current_frame = 15,
 	flip = false,
 	show_boxes = false,
 	current_box = -1
@@ -41,7 +41,7 @@ key_pressed = ""
 function draw_button(_min_x, _min_y, _max_x, _max_y, _col1, _col2)
 	local _pressed = false
 	if (mouse_buttons_pressed & 0x1) > 0 then
-		if collision.point_box(mouse_x, mouse_y, _min_x, _min_y, _max_x, _max_y) then
+		if collision.point_AABB(mouse_x, mouse_y, _min_x, _min_y, _max_x, _max_y) then
 			_pressed = true
 		end
 	end
@@ -117,11 +117,11 @@ _update = function()
 					if (btnp(3)) _b.min_y += 1
 				end
 			else
-				if btnp(0) then
+				if btnp(3) then
 					frame_tool.current_frame = positive_mod(frame_tool.current_frame - 1, #frames)
 					frame_tool.current_box = -1
 				end
-				if btnp(1) then
+				if btnp(2) then
 					frame_tool.current_frame = (frame_tool.current_frame + 1) % #frames
 					frame_tool.current_box = -1
 				end
@@ -185,35 +185,6 @@ _update = function()
 			end
 		end
 	end
-
-	-- BEZIER CURVE DEBUGGER
-	if false then
-		if btn(5) then
-			if btn(0) then
-				w1 = w1 - 1
-			end
-			if btn(1) then
-				w1 = w1 + 1
-			end
-			w1 = mid(w1, -w0, w0)
-			if btn(2) then
-				h = h + 1
-			end
-			if btn(3) then
-				h = h - 1
-			end
-		end
-
-		if btn(4) then
-			if btn(0) then
-				w0 = w0 - 1
-			end
-			if btn(1) then
-				w0 = w0 + 1
-			end
-			w1 = mid(w1, -w0, w0)
-		end
-	end
 end
 
 game_draw = _draw
@@ -260,6 +231,18 @@ _draw = function()
 			end
 			_button_y += 8
 
+			-- EXPORT CURRENT FRAME TO CLIPBOARD
+			if draw_text_button(_button_x, _button_y, "export", 3, 1) then
+				local _text = ""
+				for _i, _b in ipairs(_f.boxes) do
+					_text = _text.."\t\t\tmake_box(\"".._b.type.."\", ".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y.."),"
+					if (_i ~= #_f.boxes) _text = _text.."\n"
+				end
+				printh(_text, "@clip")
+				_button_pressed = true
+			end
+			_button_y += 12
+
 			local _pressed_box = -1
 			for _i, _b in ipairs(_f.boxes) do
 				_i -= 1
@@ -287,7 +270,7 @@ _draw = function()
 			end
 		elseif tool_mode == 2 then -- ANIMATION EDITOR
 
-			local _origin_x, _origin_y = 64, 84
+			local _origin_x, _origin_y = 64, 94
 			local _animation_name = animation_names[animation_tool.current_animation+1]
 			local _a  = animations[_animation_name]
 			local _current_frame = animation_tool.player.frame
@@ -389,29 +372,6 @@ _draw = function()
 		draw_point(mouse_x, mouse_y+1, 2)
 		color(7)
 		draw_point(mouse_x, mouse_y, 2)
-	end
-
-	-- BEZIER CURVE DEBUGGER
-	if false then
-		local _jump = make_jump(14, 100, w0, w1, h)
-
-		pset(_jump.p0.x, _jump.p0.y, 8)
-		pset(_jump.p1.x, _jump.p1.y, 8)
-		pset(_jump.p2.x, _jump.p2.y, 8)
-		pset(_jump.p3.x, _jump.p3.y, 8)
-
-		color(6)
-		line(_jump.p0.x, _jump.p0.y, _jump.p0.x, _jump.p0.y)
-
-		for i=0,10 do
-			local p = compute_jump_position(_jump, i/10)
-
-			pset(p.x, p.y)
-			--line(p.x, p.y)
-		end
-		print("w0:"..w0)
-		print("w1:"..w1)
-		print("h:"..h)
 	end
 
 	draw_log()

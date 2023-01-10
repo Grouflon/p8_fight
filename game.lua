@@ -1,9 +1,5 @@
 poke(0x5F5C, 255) -- kill autofire
 
-w0 = 32
-w1 = 10
-h = 26
-
 function sm_set_state(_sm, _state)
 	add(_sm.transition_queue, _state)
 end
@@ -37,10 +33,15 @@ ground_height = 50
 player_pos = vec2(50, ground_height)
 player_flip = false
 next_attack_type = ""
+has_air_attacked = false
+crouch = false
 player_sm = {
 	idle = {
 		enter = function()
 			play_animation_player(animation_player, animations.idle, true)
+			if btn(3) then
+				play_animation_player(animation_player, animations.crouch, true)
+			end
 		end,
 		update = function()
 
@@ -51,6 +52,8 @@ player_sm = {
 			if btn(1) then
 				direction = direction + 1
 			end
+			crouch = btn(3)
+			if (crouch) direction = 0
 
 			local speed = 1
 			
@@ -61,17 +64,31 @@ player_sm = {
 					play_animation_player(animation_player, animations.walk, true)
 				end
 			else
-				if animation_player.animation ~= animations.idle then
-					play_animation_player(animation_player, animations.idle, true)
+				if crouch then
+					if animation_player.animation ~= animations.crouch then
+						play_animation_player(animation_player, animations.crouch, true)
+					end
+				else
+					if animation_player.animation ~= animations.idle then
+						play_animation_player(animation_player, animations.idle, true)
+					end
 				end
 			end
 
 			if btnp(4) then
-				next_attack_type = "punch"
+				if crouch then
+					next_attack_type = "crouch_punch"
+				else
+					next_attack_type = "punch"
+				end
 				sm_set_state(player_sm, "attack")
 			end
 			if btnp(5) then
-				next_attack_type = "kick"
+				if crouch then
+					next_attack_type = "crouch_kick"
+				else
+					next_attack_type = "kick"
+				end
 				sm_set_state(player_sm, "attack")
 			end
 			if btn(2) then
@@ -80,6 +97,7 @@ player_sm = {
 			end
 		end,
 		exit = function()
+			crouch = false
 		end,
 	},
 	attack = {
@@ -98,33 +116,29 @@ player_sm = {
 	jump = {
 		enter = function()
 			play_animation_player(animation_player, animations.jump, true)
-
-			jump = make_jump(player_pos.x, player_pos.y - 3, jump_direction*w0, jump_direction*w1, h)
-			jump_t = 0
 		end,
 		update = function()
 
-			if btnp(5) then
-				play_animation_player(sub_animation_player, animations.jump_kick, true)
+			if not has_air_attacked then
+				if btnp(4) then
+					play_animation_player(sub_animation_player, animations.jump_punch, false)
+					has_air_attacked = true
+				end
+				if btnp(5) then
+					play_animation_player(sub_animation_player, animations.jump_kick, true)
+					has_air_attacked = true
+				end
 			end
 			local _jump_movement_x, _jump_movement_y = poll_animation_player_movement(animation_player)
 			player_pos += vec2(_jump_movement_x*jump_direction, _jump_movement_y)
 
-			local _t = jump_t / jump_duration
-
-			--player_pos = compute_jump_position(jump, _t)
-
-			if player_pos.y >= ground_height then
-			--if _t >= 1 then
+			if player_pos.y >= ground_height and animation_player.frame > 10 then
 				player_pos.y = ground_height
-				--player_pos = jump.p3:copy()
-				--player_pos.y = player_pos.y + 3
-				jump = nil
 				sm_set_state(player_sm, "idle")
 			end
-			jump_t = jump_t + 1
 		end,
 		exit = function()
+			has_air_attacked = false
 			stop_animation_player(sub_animation_player)
 		end,
 	},
@@ -133,45 +147,14 @@ player_sm = {
 }
 sm_set_state(player_sm, "idle")
 
-jump = nil
-jump_t = 0
-jump_duration = 20
-jump_direction = 0
-
-function make_jump(_origin_x, _origin_y, _w0, _w1, _h)
-	local o = vec2(_origin_x, _origin_y)
-	return {
-		p0 = o,
-		p1 = o + vec2((_w0-_w1) * 0.5, -_h),
-		p2 = o + vec2((_w0-_w1) * 0.5 + _w1, -_h),
-		p3 = o + vec2(_w0, 0),
-	}
-end
-
-function compute_jump_position(_jump, _t)
-
-	function s(_t1, _t2, _t3, _p0, _p1, _p2, _p3)
-		return _p0 + _t1*(-3*_p0+3*_p1) + _t2*(3*_p0-6*_p1+3*_p2) + _t3*(-_p0+3*_p1-3*_p2+_p3)
-	end
-
-	local t1 = _t
-	local t2 = t1*t1
-	local t3 = t2*t1
-	local x = s(t1, t2, t3, _jump.p0.x, _jump.p1.x, _jump.p2.x, _jump.p3.x)
-	local y = s(t1, t2, t3, _jump.p0.y, _jump.p1.y, _jump.p2.y, _jump.p3.y)
-	return vec2(x, y)
-end
-
 function _update()
 	sm_update(player_sm)
-
-	
 end
 
 function _draw()
 	cls(0)
 
-	if sub_animation_player.is_playing then
+	if has_air_attacked then
 		draw_animation_player(sub_animation_player, player_pos.x, player_pos.y, player_flip)
 	else
 		draw_animation_player(animation_player, player_pos.x, player_pos.y, player_flip)
