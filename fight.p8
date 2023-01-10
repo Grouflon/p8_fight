@@ -2,6 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 38
 __lua__
 #include lib/math.lua
+#include lib/statemachine.lua
 #include animation.lua
 #include data.lua
 #include game.lua
