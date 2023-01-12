@@ -1,3 +1,9 @@
+box_types = {
+	"hurt",
+	"hit",
+	"push"
+}
+
 -- coordinates origin for every position/sprite/hitbox is upper left
 function make_box(_type, _min_x, _min_y, _max_x, _max_y)
 	return {
@@ -13,8 +19,9 @@ function draw_box(_box, _x, _y, _w, _flip, _color)
 	assert(_box ~= nil)
 	if _color == nil then
 		_color = 7
-		if (_box.type == "hit") _color = 8
-		if (_box.type == "hurt") _color = 11
+		if (_box.type == 0) _color = 11 -- hurt
+		if (_box.type == 1) _color = 8  -- hit
+		if (_box.type == 2) _color = 10 -- push
 	end
 
 	local min_x = _box.min_x
@@ -84,17 +91,17 @@ function make_absolute_box(_frame, _box, _x, _y, _flip)
 	)
 end
 
-function draw_frame(_frame, _x, _y, _flip, _draw_boxes)
+function draw_frame(_frame, _x, _y, _flip)
 	assert(_frame ~= nil)
 	local _corner_x, _corner_y = get_frame_upperleft_corner(_frame, _x, _y, _flip)
 	local _spr_flip_x = xor(_flip, _frame.flip_x) -- all the flipping argument thing is super messy. I need to clarify and rewrite this
 	spr(_frame.spr, _corner_x, _corner_y, _frame.spr_w, _frame.spr_h, _spr_flip_x, _frame.flip_y)
+end
 
-	if _draw_boxes then
-		for _i, _b in ipairs(_frame.boxes) do
-			local _abs_box = make_absolute_box(_frame, _b, _x, _y, _flip)
-			draw_box(_abs_box, 0, 0, _frame.spr_w, false)
-		end
+function draw_frame_boxes(_frame, _x, _y, _flip)
+	for _i, _b in ipairs(_frame.boxes) do
+		local _abs_box = make_absolute_box(_frame, _b, _x, _y, _flip)
+		draw_box(_abs_box, 0, 0, _frame.spr_w, false)
 	end
 end
 

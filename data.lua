@@ -7,8 +7,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 1, 7, 6, 10),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 1, 7, 6, 10),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 1 - IDLE
@@ -19,8 +20,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 1, 7, 6, 10),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 1, 7, 6, 10),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 2 - PUNCH
@@ -31,8 +33,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 2, 6, 7, 9),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 2, 6, 7, 9),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 3 - PUNCH
@@ -43,8 +46,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hit", 5, 6, 8, 8),
+			make_box(0, 2, 3, 5, 16),
+			make_box(1, 5, 6, 8, 8),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 4 - WALK
@@ -55,8 +59,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 1, 7, 6, 10),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 1, 7, 6, 10),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 5 - WALK
@@ -67,8 +72,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 1, 7, 6, 10),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 1, 7, 6, 10),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 6 - KICK
@@ -79,8 +85,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{
-			make_box("hurt", 2, 3, 5, 16),
-			make_box("hurt", 5, 8, 7, 13),
+			make_box(0, 2, 3, 5, 16),
+			make_box(0, 5, 8, 7, 13),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 7 - KICK
@@ -91,9 +98,10 @@ frames = {
 		4, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 10),
-			make_box("hurt", 4, 7, 7, 16),
-			make_box("hit", 7, 8, 12, 11),
+			make_box(0, 2, 3, 5, 10),
+			make_box(0, 4, 7, 7, 16),
+			make_box(1, 7, 8, 12, 11),
+			make_box(2, 2, 5, 5, 16),
 		}
 	),
 	-- 8 - JUMP0
@@ -104,8 +112,9 @@ frames = {
 		4, 8,
 		-- boxes
 		{
-			make_box("hurt", 2, 0, 5, 7),
-			make_box("hurt", 1, 3, 6, 6),
+			make_box(0, 2, 0, 5, 7),
+			make_box(0, 1, 3, 6, 6),
+			make_box(2, 2, 2, 5, 7),
 		}
 	),
 	-- 9 - JUMP1
@@ -116,8 +125,9 @@ frames = {
 		4, 8,
 		-- boxes
 		{
-			make_box("hurt", 2, 1, 5, 6),
-			make_box("hurt", 1, 2, 6, 5),
+			make_box(0, 2, 1, 5, 6),
+			make_box(0, 1, 2, 6, 5),
+			make_box(2, 2, 2, 5, 7),
 		}
 	),
 	-- 10 - JUMP2
@@ -128,8 +138,9 @@ frames = {
 		4, 8,
 		-- boxes
 		{
-			make_box("hurt", 2, 0, 5, 7),
-			make_box("hurt", 1, 2, 6, 5),
+			make_box(0, 2, 0, 5, 7),
+			make_box(0, 1, 2, 6, 5),
+			make_box(2, 2, 2, 5, 7),
 		}
 	),
 	-- 11 - JUMP3
@@ -140,8 +151,9 @@ frames = {
 		4, 8,
 		-- boxes
 		{
-			make_box("hurt", 2, 2, 5, 7),
-			make_box("hurt", 1, 3, 6, 6),
+			make_box(0, 2, 2, 5, 7),
+			make_box(0, 1, 3, 6, 6),
+			make_box(2, 2, 2, 5, 7),
 		}
 	),
 	-- 12 - JUMP KICK
@@ -152,9 +164,10 @@ frames = {
 		4, 8,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 0, 6, 7),
-			make_box("hurt", 1, 3, 9, 6),
-			make_box("hit", 6, 5, 12, 8),
+			make_box(0, 2, 0, 6, 7),
+			make_box(0, 1, 3, 9, 6),
+			make_box(1, 6, 5, 12, 8),
+			make_box(2, 2, 2, 6, 7),
 		}
 	),
 	-- 13 - CROUCH
@@ -165,9 +178,10 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 7, 5, 16),
-			make_box("hurt", 1, 9, 6, 12),
-			make_box("hurt", 1, 13, 7, 16),
+			make_box(0, 2, 7, 5, 16),
+			make_box(0, 1, 9, 6, 12),
+			make_box(0, 1, 13, 7, 16),
+			make_box(2, 2, 9, 5, 16),
 		}
 	),
 	-- 14 - JUMPING
@@ -178,8 +192,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 14),
-			make_box("hurt", 1, 10, 6, 6),
+			make_box(0, 2, 3, 5, 14),
+			make_box(0, 1, 10, 6, 6),
+			make_box(2, 2, 5, 5, 11),
 		}
 	),
 	-- 15 - CROUCH PUNCH
@@ -190,10 +205,11 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 5, 5, 17),
-			make_box("hurt", 1, 6, 7, 11),
-			make_box("hurt", 1, 12, 7, 16),
-			make_box("hit", 6, 5, 7, 9),
+			make_box(0, 2, 5, 5, 17),
+			make_box(0, 1, 6, 7, 11),
+			make_box(0, 1, 12, 7, 16),
+			make_box(1, 6, 6, 7, 9),
+			make_box(2, 2, 8, 5, 16),
 		}
 	),
 	-- 16 - CROUCH PUNCH
@@ -204,9 +220,10 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 17),
-			make_box("hurt", 1, 12, 6, 16),
-			make_box("hit", 5, 2, 7, 7),
+			make_box(0, 2, 3, 5, 17),
+			make_box(0, 1, 12, 6, 16),
+			make_box(1, 5, 2, 7, 7),
+			make_box(2, 2, 6, 5, 16),
 		}
 	),
 	-- 17 - CROUCH PUNCH
@@ -217,9 +234,10 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 5, 5, 17),
-			make_box("hurt", 1, 6, 7, 11),
-			make_box("hurt", 1, 12, 7, 16),
+			make_box(0, 2, 5, 5, 17),
+			make_box(0, 1, 6, 7, 11),
+			make_box(0, 1, 12, 7, 16),
+			make_box(2, 2, 8, 5, 16),
 		}
 	),
 	-- 18 - CROUCH KICK
@@ -230,9 +248,10 @@ frames = {
 		3, 8,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 0, 5, 8),
-			make_box("hurt", 2, 2, 7, 5),
-			make_box("hurt", 1, 5, 7, 8),
+			make_box(0, 2, 0, 5, 8),
+			make_box(0, 2, 2, 7, 5),
+			make_box(0, 1, 5, 7, 8),
+			make_box(2, 2, 2, 5, 8),
 		}
 	),
 	-- 19 - CROUCH KICK
@@ -243,10 +262,11 @@ frames = {
 		3, 8,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 0, 5, 8),
-			make_box("hurt", 2, 2, 7, 5),
-			make_box("hurt", 1, 5, 7, 8),
-			make_box("hit", 6, 6, 11, 8),
+			make_box(0, 2, 0, 5, 8),
+			make_box(0, 2, 2, 7, 5),
+			make_box(0, 1, 5, 7, 8),
+			make_box(1, 6, 6, 11, 8),
+			make_box(2, 2, 2, 5, 8),
 		}
 	),
 	-- 20 - JUMP PUNCH
@@ -257,8 +277,9 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 13),
-			make_box("hurt", 1, 6, 7, 8),
+			make_box(0, 2, 3, 5, 13),
+			make_box(0, 1, 6, 7, 8),
+			make_box(2, 2, 6, 5, 12),
 		}
 	),
 	-- 21 - JUMP PUNCH
@@ -269,9 +290,10 @@ frames = {
 		3, 16,
 		-- boxes
 		{ 
-			make_box("hurt", 2, 3, 5, 13),
-			make_box("hurt", 1, 6, 6, 8),
-			make_box("hit", 4, 7, 8, 7),
+			make_box(0, 2, 3, 5, 13),
+			make_box(0, 1, 6, 6, 8),
+			make_box(1, 4, 7, 8, 7),
+			make_box(2, 2, 6, 5, 12),
 		}
 	),
 }

@@ -3,7 +3,7 @@ poke(0x5F2D, 0x1) -- enable devkit mode
 tool_mode = 0 -- 0 is game, 1 is frame editor, 2 is animation editor
 
 frame_tool = {
-	current_frame = 15,
+	current_frame = 0,
 	flip = false,
 	show_boxes = false,
 	current_box = -1
@@ -39,15 +39,15 @@ prev_key = ""
 key_pressed = ""
 
 function draw_button(_min_x, _min_y, _max_x, _max_y, _col1, _col2)
-	local _pressed = false
-	if (mouse_buttons_pressed & 0x1) > 0 then
+	local _pressed = 0
+	if mouse_buttons_pressed ~= 0 then
 		if collision.point_AABB(mouse_x, mouse_y, _min_x, _min_y, _max_x, _max_y) then
-			_pressed = true
+			_pressed = mouse_buttons_pressed
 		end
 	end
 
 	local _box_col = _col1
-	if _pressed then
+	if _pressed ~= 0 then
 		_box_col = _col2
 	end
 
@@ -57,13 +57,13 @@ function draw_button(_min_x, _min_y, _max_x, _max_y, _col1, _col2)
 end
 
 function draw_text_button(_x, _y, _text, _col1, _col2)
-	local _w = print(_text, 0, -9999) + 2
+	local _w = print(_text, 0, -9999) + 1
 	local _min_x, _min_y, _max_x, _max_y = _x, _y, _x + _w, _y + 7
 
 	local _pressed = draw_button(_min_x, _min_y, _max_x, _max_y, _col1, _col2)
 
 	local _text_col = _col2
-	if _pressed then
+	if _pressed ~= 0 then
 		_text_col = _col1
 	end
 
@@ -199,7 +199,7 @@ _draw = function()
 		if tool_mode == 1 then -- FRAME EDITOR
 
 			local _f = frames[frame_tool.current_frame+1]
-			local _origin_x, _origin_y = 64, 84
+			local _origin_x, _origin_y = 64, 94
 			draw_frame(_f, _origin_x, _origin_y, frame_tool.flip, frame_tool.show_boxes and frame_tool.current_box < 0)
 
 			if frame_tool.current_box >= 0 then
@@ -219,23 +219,23 @@ _draw = function()
 			local _button_y = 7
 			local _button_pressed = false
 
-			if draw_text_button(_button_x, _button_y, "flip: "..bool_to_int(frame_tool.flip), 6, 7) then
+			if draw_text_button(_button_x, _button_y, "flip: "..bool_to_int(frame_tool.flip), 6, 7) & 0x1 ~= 0 then
 				frame_tool.flip = not frame_tool.flip
 				_button_pressed = true
 			end
 			_button_y += 8
 
-			if draw_text_button(_button_x, _button_y, "show_boxes: "..bool_to_int(frame_tool.show_boxes), 6, 7) then
+			if draw_text_button(_button_x, _button_y, "show_boxes: "..bool_to_int(frame_tool.show_boxes), 6, 7) & 0x1 ~= 0 then
 				frame_tool.show_boxes = not frame_tool.show_boxes
 				_button_pressed = true
 			end
 			_button_y += 8
 
 			-- EXPORT CURRENT FRAME TO CLIPBOARD
-			if draw_text_button(_button_x, _button_y, "export", 3, 1) then
+			if draw_text_button(_button_x, _button_y, "export", 3, 1) & 0x1 ~= 0 then
 				local _text = ""
 				for _i, _b in ipairs(_f.boxes) do
-					_text = _text.."\t\t\tmake_box(\"".._b.type.."\", ".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y.."),"
+					_text = _text.."\t\t\tmake_box(".._b.type..", ".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y.."),"
 					if (_i ~= #_f.boxes) _text = _text.."\n"
 				end
 				printh(_text, "@clip")
@@ -246,21 +246,57 @@ _draw = function()
 			local _pressed_box = -1
 			for _i, _b in ipairs(_f.boxes) do
 				_i -= 1
-				local _text = "".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y
-				local _col1, _col2 = 0, 0
-				if (_b.type == "hit") _col1 = 2 _col2 = 8
-				if (_b.type == "hurt") _col1 = 3 _col2 = 11
 
+				-- HIGHLIGHT
 				if frame_tool.current_box == _i then
 					rectfill(0, _button_y, 1, _button_y + 6, 7)
 				end
 
-				if draw_text_button(_button_x, _button_y, _text, _col1, _col2) then
+				-- BOX MANIPULATION BUTTONS
+				local _x = _button_x
+				if draw_text_button(_x, _button_y, "x", 6, 13) & 0x1 ~= 0 then
+					del(_f.boxes, _b)
+					_button_pressed = true
+				end
+				_x += 6
+				if draw_text_button(_x, _button_y, "⬆️", 6, 13) & 0x1 ~= 0 then
+					if _i > 0 then
+						local _temp = _f.boxes[_i]
+						_f.boxes[_i] = _b
+						_f.boxes[_i+1] = _temp
+					end
+				end
+				_x += 10
+				if draw_text_button(_x, _button_y, "⬇️", 6, 13) & 0x1 ~= 0 then
+					if _i < (#_f.boxes-1) then
+						local _temp = _f.boxes[_i+2]
+						_f.boxes[_i+2] = _b
+						_f.boxes[_i+1] = _temp
+					end
+				end
+				_x += 10
+
+				-- BOX BUTTON
+				local _text = "".._b.min_x..", ".._b.min_y..", ".._b.max_x..", ".._b.max_y
+				local _col1, _col2 = 0, 0
+				if (_b.type == 0) _col1 = 3 _col2 = 11 -- hurt
+				if (_b.type == 1) _col1 = 2 _col2 = 8  -- hit
+				if (_b.type == 2) _col1 = 9 _col2 = 10 -- push
+
+				local _button_pressed_mask = draw_text_button(_x, _button_y, _text, _col1, _col2)
+				if _button_pressed_mask & 0x1 ~= 0 then
 					_pressed_box = _i
 					_button_pressed = true
 				end
+				if _button_pressed_mask & 0x2 ~= 0 then
+					_b.type = (_b.type + 1) % #box_types
+				end
 
 				_button_y += 8
+			end
+
+			if draw_text_button(_button_x, _button_y, "+", 6, 13) & 0x1 ~= 0 then
+				add(_f.boxes, make_box(0, 0, 0, 0, 0))
 			end
 
 			if _pressed_box >= 0 then
@@ -316,19 +352,19 @@ _draw = function()
 			local _button_x = 1
 			local _button_y = 7
 
-			if draw_text_button(_button_x, _button_y, "loop: "..bool_to_int(animation_tool.loop), 6, 7) then
+			if draw_text_button(_button_x, _button_y, "loop: "..bool_to_int(animation_tool.loop), 6, 7) & 0x1 ~= 0 then
 				animation_tool.loop = not animation_tool.loop
 				animation_tool.player.is_looping = animation_tool.loop
 			end
 			_button_y += 8
 
-			if draw_text_button(_button_x, _button_y, "ghost: "..bool_to_int(animation_tool.ghost), 6, 7) then
+			if draw_text_button(_button_x, _button_y, "ghost: "..bool_to_int(animation_tool.ghost), 6, 7) & 0x1 ~= 0 then
 				animation_tool.ghost = not animation_tool.ghost
 			end
 			_button_y += 8
 
 			-- EXPORT CURRENT ANIMATION TO CLIPBOARD
-			if draw_text_button(_button_x, _button_y, "export", 3, 1) then
+			if draw_text_button(_button_x, _button_y, "export", 3, 1) & 0x1 ~= 0 then
 				local _text = ""
 				for _i, _f in ipairs(_a) do
 					_text = _text.."\t\t{ frame = ".._f.frame..", movement = {".._f.movement[1]..", ".._f.movement[2].."}},"
@@ -349,7 +385,7 @@ _draw = function()
 			-- DRAW TIMELINE
 			local _row_size = 12
 			local _cell_w, _cell_h = 2, 4
-			local _timeline_x = 70
+			local _timeline_x = 80
 			local _timeline_y = 1
 			for _i, _f in ipairs(_a) do
 				_i -= 1
@@ -358,7 +394,7 @@ _draw = function()
 				if (_i == _current_frame) _col = 3
 				local _x = _timeline_x + (_i%_row_size)*(_cell_w+1)
 				local _y = _timeline_y + flr(_i/_row_size)*(_cell_h+1)
-				if draw_button(_x, _y, _x+_cell_w, _y+_cell_h, _col, 8) then
+				if draw_button(_x, _y, _x+_cell_w, _y+_cell_h, _col, 8) & 0x1 ~= 0 then
 					animation_tool.player.frame = _i
 				end
 			end

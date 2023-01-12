@@ -2,6 +2,7 @@ poke(0x5F5C, 255) -- kill autofire
 
 -- GLOBAL
 ground_height = 64
+stage_margin = 2
 start_offset = 20
 
 -- PLAYER
@@ -10,6 +11,7 @@ function make_player(_id, _x)
 		id = _id,
 		animation_player = make_animation_player(),
 		sub_animation_player = make_animation_player(),
+		drawn_animation_player = nil,
 		pos = vec2(_x, ground_height),
 		flip_x = false,
 		next_attack_type = "",
@@ -110,10 +112,12 @@ player_sm_definition = {
 			if not _player.has_air_attacked then
 				if btnp(4, _player.id) then
 					play_animation_player(_player.sub_animation_player, animations.jump_punch, false)
+					_player.drawn_animation_player = _player.sub_animation_player
 					_player.has_air_attacked = true
 				end
 				if btnp(5, _player.id) then
 					play_animation_player(_player.sub_animation_player, animations.jump_kick, true)
+					_player.drawn_animation_player = _player.sub_animation_player
 					_player.has_air_attacked = true
 				end
 			end
@@ -128,6 +132,7 @@ player_sm_definition = {
 		exit = function(_player)
 			_player.has_air_attacked = false
 			_player.is_jumping = false
+			_player.drawn_animation_player = _player.animation_player
 			stop_animation_player(_player.sub_animation_player)
 		end,
 	},
@@ -139,23 +144,23 @@ function player_update_flip(_self, _other)
 	end
 end
 
+function player_get_current_frame(_player)
+	local _animation_frame = _player.drawn_animation_player.animation[_player.drawn_animation_player.frame+1]
+	return frames[_animation_frame.frame+1]
+end
+
 function player_start(_player)
+	_player.drawn_animation_player = _player.animation_player
 	sm_set_state(_player.sm, "idle")
 end
 
-function player_update(_player, _other)
+function player_update(_player)
 	sm_update(_player.sm, _player)
 end
 
 function player_draw(_player)
-
-	if _player.has_air_attacked then
-		draw_animation_player(_player.sub_animation_player, _player.pos.x, _player.pos.y, _player.flip_x)
-	else
-		draw_animation_player(_player.animation_player, _player.pos.x, _player.pos.y, _player.flip_x)
-	end
+	draw_animation_player(_player.drawn_animation_player, _player.pos.x, _player.pos.y, _player.flip_x)
 end
-
 function player_post_update(_player)
 	update_animation_player(_player.animation_player)
 	update_animation_player(_player.sub_animation_player)
@@ -175,6 +180,58 @@ function _update()
 	if (player1 ~= nil and player2 ~= nil) then
 		player_update_flip(player1, player2)
 		player_update_flip(player2, player1)
+
+		local _p1_frame = player_get_current_frame(player1)
+		local _p2_frame = player_get_current_frame(player2)
+
+		function keep_in_stage(_abs_box)
+			local _correction = 0
+			if _abs_box.min_x < stage_margin then
+				_correction += stage_margin-_abs_box.min_x
+			end
+			if _abs_box.max_x >= 128 - stage_margin then
+				_correction += 128 - stage_margin-_abs_box.max_x
+			end
+			return _correction
+		end
+
+		for _i = 0,3 do
+			local _corrected = false
+			local _boxes = { nil, nil }
+			for _j, _b1 in ipairs(_p1_frame.boxes) do
+				if _b1.type == 2 then
+					_boxes[1] = make_absolute_box(_p1_frame, _b1, player1.pos.x, player1.pos.y, player1.flip_x)
+					local _correction1 = keep_in_stage(_boxes[1])
+					player1.pos.x += _correction1
+					_boxes[1].min_x += _correction1
+					_boxes[1].max_x += _correction1
+					for _k, _b2 in ipairs(_p2_frame.boxes) do
+						if _b2.type == 2 then
+							_boxes[2] = make_absolute_box(_p2_frame, _b2, player2.pos.x, player2.pos.y, player2.flip_x)
+							local _correction2 = keep_in_stage(_boxes[2])
+							player2.pos.x += _correction2
+							_boxes[2].min_x += _correction2
+							_boxes[2].max_x += _correction2
+
+							if collision.AABB_AABB(_boxes[1].min_x, _boxes[1].min_y, _boxes[1].max_x, _boxes[1].max_y, _boxes[2].min_x, _boxes[2].min_y, _boxes[2].max_x, _boxes[2].max_y) then
+
+								local _leftmost_box = 1
+								local _rightmost_box = 2
+								if (_boxes[2].min_x < _boxes[1].min_x) _leftmost_box = 2 _rightmost_box = 1
+								local _corrections  = { 0, 0 }
+								local _penetration = _boxes[_leftmost_box].max_x - _boxes[_rightmost_box].min_x
+								_corrections[_leftmost_box] = -_penetration * 0.5
+								_corrections[_rightmost_box] = _penetration * 0.5
+
+								player1.pos.x += _corrections[1]
+								player2.pos.x += _corrections[2]
+							end
+						end
+					end
+				end
+			end
+			if (not _corrected) break
+		end
 	end
 end
 
@@ -194,6 +251,11 @@ function _draw()
 
 	if (player1 ~= nil) player_draw(player1)
 	if (player2 ~= nil) player_draw(player2)
+
+	local _p1_frame = player_get_current_frame(player1)
+	local _p2_frame = player_get_current_frame(player2)
+	--draw_frame_boxes(_p1_frame, player1.pos.x, player1.pos.y, player1.flip_x)
+	--draw_frame_boxes(_p2_frame, player2.pos.x, player2.pos.y, player2.flip_x)
 
 	if (player1 ~= nil) player_post_update(player1)
 	if (player2 ~= nil) player_post_update(player2)
