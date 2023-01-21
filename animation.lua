@@ -110,7 +110,7 @@ function get_animation_extent(_animation)
 	local _min_x, _min_y, _max_x, _max_y = 0,0,0,0
 	local _pos_x, _pos_y = 0,0
 
-	for _i, _f in ipairs(_animation) do
+	for _i, _f in ipairs(_animation.frames) do
 		_pos_x += _f.movement[1]
 		_pos_y += _f.movement[2]
 		_min_x = min(_pos_x, _min_x)
@@ -128,7 +128,7 @@ function get_animation_movement(_animation, _start_frame, _end_frame)
 
 	local _x, _y = 0, 0
 	for _i = _start_frame, _end_frame do
-		local _f = _animation[_i+1]
+		local _f = _animation.frames[_i+1]
 		_x += _f.movement[1]
 		_y += _f.movement[2]
 	end
@@ -153,8 +153,8 @@ function play_animation_player(_player, _animation, _loop, _start_frame)
 	_player.frame = _start_frame or 0
 	_player.is_looping = _loop
 	_player.is_playing = true
-	_player.movement_x = _player.animation[_player.frame+1].movement[1]
-	_player.movement_y = _player.animation[_player.frame+1].movement[2]
+	_player.movement_x = _player.animation.frames[_player.frame+1].movement[1]
+	_player.movement_y = _player.animation.frames[_player.frame+1].movement[2]
 end
 
 function stop_animation_player(_player)
@@ -166,7 +166,7 @@ function update_animation_player(_player)
 	assert(_player ~= nil)
 	if _player.animation ~= nil and _player.is_playing then
 		_player.frame = (_player.frame + 1)
-		if _player.frame >= #_player.animation then
+		if _player.frame >= #_player.animation.frames then
 			if _player.is_looping then
 				_player.frame = 0
 			else
@@ -177,8 +177,8 @@ function update_animation_player(_player)
 
 		-- add movement
 		if _player.is_playing then
-			_player.movement_x += _player.animation[_player.frame+1].movement[1]
-			_player.movement_y += _player.animation[_player.frame+1].movement[2]
+			_player.movement_x += _player.animation.frames[_player.frame+1].movement[1]
+			_player.movement_y += _player.animation.frames[_player.frame+1].movement[2]
 		end
 	end
 end
@@ -194,7 +194,7 @@ end
 function draw_animation_player(_player, _x, _y, _flip)
 	assert(_player ~= nil)
 	if _player.animation ~= nil then
-		local _animation_frame = _player.animation[_player.frame+1]
+		local _animation_frame = _player.animation.frames[_player.frame+1]
 		local _game_frame = frames[_animation_frame.frame+1]
 		draw_frame(_game_frame, _x, _y, _flip)
 	end 

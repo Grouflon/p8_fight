@@ -170,7 +170,7 @@ function update_players_flip(_players)
 end
 
 function player_get_current_frame(_player)
-	local _animation_frame = _player.drawn_animation_player.animation[_player.drawn_animation_player.frame+1]
+	local _animation_frame = _player.drawn_animation_player.animation.frames[_player.drawn_animation_player.frame+1]
 	return frames[_animation_frame.frame+1]
 end
 

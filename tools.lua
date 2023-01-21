@@ -200,7 +200,8 @@ _draw = function()
 
 			local _f = frames[frame_tool.current_frame+1]
 			local _origin_x, _origin_y = 64, 94
-			draw_frame(_f, _origin_x, _origin_y, frame_tool.flip, frame_tool.show_boxes and frame_tool.current_box < 0)
+			draw_frame(_f, _origin_x, _origin_y, frame_tool.flip)
+			if (frame_tool.show_boxes and frame_tool.current_box < 0) draw_frame_boxes(_f, _origin_x, _origin_y, frame_tool.flip)
 
 			if frame_tool.current_box >= 0 then
 				local _abs_box = make_absolute_box(_f, _f.boxes[frame_tool.current_box+1], _origin_x, _origin_y, frame_tool.flip)
@@ -319,7 +320,7 @@ _draw = function()
 			-- DRAW GHOSTS
 			if animation_tool.ghost then
 				pal({6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6}, 0)
-				for _i, _f in ipairs(_a) do
+				for _i, _f in ipairs(_a.frames) do
 					if _i ~= _current_frame+1 then
 						local _frame_x, _frame_y = get_animation_movement(_a, 0, _i-1)
 						_frame_x += _origin_x
@@ -338,7 +339,7 @@ _draw = function()
 			if animation_tool.player.is_playing then
 				draw_animation_player(animation_tool.player, _frame_x, _frame_y)
 			else
-				draw_frame(frames[_a[_current_frame+1].frame+1], _frame_x, _frame_y)
+				draw_frame(frames[_a.frames[_current_frame+1].frame+1], _frame_x, _frame_y)
 			end
 
 			-- DRAW ORIGIN
@@ -375,8 +376,8 @@ _draw = function()
 
 			_button_y += 12
 			cursor(_button_x, _button_y, 7)
-			print("sprite ".._a[_current_frame+1].frame)
-			print("movement: ".._a[_current_frame+1].movement[1]..", ".._a[_current_frame+1].movement[2])
+			print("sprite ".._a.frames[_current_frame+1].frame)
+			print("movement: ".._a.frames[_current_frame+1].movement[1]..", ".._a.frames[_current_frame+1].movement[2])
 			local _edit_mode_str = "none"
 			if (animation_tool.edit_mode == 1) _edit_mode_str = "local"
 			if (animation_tool.edit_mode == 2) _edit_mode_str = "world"
