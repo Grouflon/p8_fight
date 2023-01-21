@@ -138,9 +138,34 @@ player_sm_definition = {
 	},
 }
 
-function player_update_flip(_self, _other)
-	if not _self.is_jumping then
-		_self.flip_x = _self.pos.x > _other.pos.x
+function update_players_flip(_players)
+	local _bounds = {{ 9999, -9999 }, { 9999, -9999 }}
+
+	-- CALCULATE BOUNDS FOR EACH PLAYER
+	for _i = 1, 2 do
+		local _p = players[_i]
+		local _frame = player_get_current_frame(_p)
+		for _j, _b in ipairs(_frame.boxes) do
+			if _b.type == 2 then
+				local _abs_box = make_absolute_box(_frame, _b, _p.pos.x, _p.pos.y, _p.flip_x)
+				_bounds[_i][1] = min(_bounds[_i][1], _abs_box.min_x)
+				_bounds[_i][2] = max(_bounds[_i][2], _abs_box.max_x)
+			end
+		end
+	end
+
+	-- RESOLVE FLIPS
+	for _i = 0, 1 do
+		local _p_index = _i+1
+		local _other_p_index = ((_i+1)%2)+1
+		local _p = _players[_p_index]
+		if not _p.is_jumping then
+			if _bounds[_p_index][1] < _bounds[_other_p_index][1] - 1 then
+				_p.flip_x = false
+			elseif _bounds[_p_index][2] > _bounds[_other_p_index][2] + 1 then
+				_p.flip_x = true
+			end
+		end
 	end
 end
 
@@ -169,6 +194,7 @@ end
 -- GAME
 player1 = make_player(1, 64-start_offset)
 player2 = make_player(0, 64+start_offset)
+players = { player1, player2 }
 
 if (player1 ~= nil) player_start(player1)
 if (player2 ~= nil) player_start(player2)
@@ -178,8 +204,6 @@ function _update()
 	if (player2 ~= nil) player_update(player2)
 
 	if (player1 ~= nil and player2 ~= nil) then
-		player_update_flip(player1, player2)
-		player_update_flip(player2, player1)
 
 		local _p1_frame = player_get_current_frame(player1)
 		local _p2_frame = player_get_current_frame(player2)
@@ -202,6 +226,7 @@ function _update()
 				if _b1.type == 2 then
 					_boxes[1] = make_absolute_box(_p1_frame, _b1, player1.pos.x, player1.pos.y, player1.flip_x)
 					local _correction1 = keep_in_stage(_boxes[1])
+					if (_correction1 ~= 0) _corrected = true
 					player1.pos.x += _correction1
 					_boxes[1].min_x += _correction1
 					_boxes[1].max_x += _correction1
@@ -209,22 +234,37 @@ function _update()
 						if _b2.type == 2 then
 							_boxes[2] = make_absolute_box(_p2_frame, _b2, player2.pos.x, player2.pos.y, player2.flip_x)
 							local _correction2 = keep_in_stage(_boxes[2])
+							if (_correction2 ~= 0) _corrected = true
 							player2.pos.x += _correction2
 							_boxes[2].min_x += _correction2
 							_boxes[2].max_x += _correction2
 
 							if collision.AABB_AABB(_boxes[1].min_x, _boxes[1].min_y, _boxes[1].max_x, _boxes[1].max_y, _boxes[2].min_x, _boxes[2].min_y, _boxes[2].max_x, _boxes[2].max_y) then
 
-								local _leftmost_box = 1
-								local _rightmost_box = 2
-								if (_boxes[2].min_x < _boxes[1].min_x) _leftmost_box = 2 _rightmost_box = 1
-								local _corrections  = { 0, 0 }
-								local _penetration = _boxes[_leftmost_box].max_x - _boxes[_rightmost_box].min_x
-								_corrections[_leftmost_box] = -_penetration * 0.5
-								_corrections[_rightmost_box] = _penetration * 0.5
+								local _push_directions = { 0, 0 }
+								local _leftmost_box = 0
+								local _rightmost_box = 0
+								if (_boxes[1].min_x < _boxes[2].min_x) _push_directions = { -1, 1 }
+								if (_boxes[1].max_x > _boxes[2].max_x) _push_directions = { 1, -1 }
+								if (_push_directions[1] == 0) _push_directions = { bool_to_sign(player1.flip_x), bool_to_sign(player2.flip_x) }
 
-								player1.pos.x += _corrections[1]
-								player2.pos.x += _corrections[2]
+								if (_push_directions[1] == _push_directions[2]) _push_directions = { -1, 1 } -- this is arbitrary, we should see that this never happens
+
+								if (_push_directions[1] < 0) _leftmost_box = 1 _rightmost_box = 2 else _leftmost_box = 2 _rightmost_box = 1
+
+								local _penetration = _boxes[_leftmost_box].max_x - _boxes[_rightmost_box].min_x
+								player1.pos.x +=  _push_directions[1] * _penetration * 0.5
+								player2.pos.x +=  _push_directions[2] * _penetration * 0.5
+
+								_boxes[1] = make_absolute_box(_p1_frame, _b1, player1.pos.x, player1.pos.y, player1.flip_x)
+								_boxes[2] = make_absolute_box(_p2_frame, _b1, player2.pos.x, player2.pos.y, player2.flip_x)
+
+								_correction1 = keep_in_stage(_boxes[1])
+								_correction2 = keep_in_stage(_boxes[2])
+								player1.pos.x += _correction1 + _correction2
+								player2.pos.x += _correction1 + _correction2
+
+								_corrected = true
 							end
 						end
 					end
@@ -232,6 +272,8 @@ function _update()
 			end
 			if (not _corrected) break
 		end
+
+		update_players_flip(players)
 	end
 end
 
