@@ -1,3 +1,7 @@
+BOXTYPE_HURT = 0
+BOXTYPE_HIT = 1
+BOXTYPE_PUSH = 2
+
 box_types = {
 	"hurt",
 	"hit",
@@ -139,6 +143,7 @@ function make_animation_player()
 	return {
 		animation = nil,
 		frame = 0,
+		playrate = 1,
 		is_looping = false,
 		is_playing = false,
 		movement_x = 0,
@@ -146,44 +151,59 @@ function make_animation_player()
 	}
 end
 
-function play_animation_player(_player, _animation, _loop, _start_frame)
+function animation_player_play(_player, _animation, _loop, _start_frame, _playrate)
 	assert(_player ~= nil)
 	assert(_animation ~= nil)
 	_player.animation = _animation
 	_player.frame = _start_frame or 0
+	_player.playrate = _playrate or 1
 	_player.is_looping = _loop
 	_player.is_playing = true
-	_player.movement_x = _player.animation.frames[_player.frame+1].movement[1]
-	_player.movement_y = _player.animation.frames[_player.frame+1].movement[2]
+	local _af = animation_player_get_current_animation_frame(_player)
+	_player.movement_x = _af.movement[1]
+	_player.movement_y = _af.movement[2]
 end
 
-function stop_animation_player(_player)
+function animation_player_stop(_player)
 	assert(_player ~= nil)
 	_player.is_playing = false
 end
 
-function update_animation_player(_player)
+function animation_player_update(_player)
 	assert(_player ~= nil)
 	if _player.animation ~= nil and _player.is_playing then
-		_player.frame = (_player.frame + 1)
+		local _previous_frame = _player.frame
+		_player.frame += _player.playrate
 		if _player.frame >= #_player.animation.frames then
 			if _player.is_looping then
 				_player.frame = 0
 			else
 				_player.is_playing = false
-				_player.frame -= 1
+				_player.frame = #_player.animation.frames - 1
 			end
 		end
 
+		local _previous_flr_frame = flr(_previous_frame)
+		local _flr_frame = flr(_player.frame)
+		local _changed_frame = _previous_flr_frame ~= _flr_frame
+
 		-- add movement
-		if _player.is_playing then
-			_player.movement_x += _player.animation.frames[_player.frame+1].movement[1]
-			_player.movement_y += _player.animation.frames[_player.frame+1].movement[2]
+		if _player.is_playing and _changed_frame then
+			for _i = _previous_flr_frame+1, _flr_frame do
+				local _af = _player.animation.frames[_i+1]
+				_player.movement_x += _af.movement[1]
+				_player.movement_y += _af.movement[2]
+			end
 		end
 	end
 end
 
-function poll_animation_player_movement(_player)
+function animation_player_get_current_animation_frame(_player)
+	assert(_player ~= nil)
+	return _player.animation.frames[flr(_player.frame)+1]
+end
+
+function animation_player_poll_movement(_player)
 	assert(_player ~= nil)
 	local _x, _y = _player.movement_x, _player.movement_y
 	_player.movement_x = 0
@@ -191,11 +211,20 @@ function poll_animation_player_movement(_player)
 	return _x, _y
 end
 
-function draw_animation_player(_player, _x, _y, _flip)
+function animation_player_draw(_player, _x, _y, _flip)
 	assert(_player ~= nil)
 	if _player.animation ~= nil then
-		local _animation_frame = _player.animation.frames[_player.frame+1]
+		local _animation_frame = animation_player_get_current_animation_frame(_player)
 		local _game_frame = frames[_animation_frame.frame+1]
 		draw_frame(_game_frame, _x, _y, _flip)
 	end 
+end
+
+function animation_bake_data(_animation)
+	assert(_animation ~= nil)
+	_animation.movement = { 0, 0 }
+	for _f in all(_animation.frames) do
+		_animation.movement[1] += _f.movement[1]
+		_animation.movement[2] += _f.movement[2]
+	end
 end

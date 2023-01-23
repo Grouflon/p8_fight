@@ -1,3 +1,11 @@
+HITTYPE_FACE = 0
+HITTYPE_BODY = 1
+
+function hittype_to_animation(_hittype)
+	if (_hittype == HITTYPE_FACE) return animations.hit_face
+	if (_hittype == HITTYPE_BODY) return animations.hit_body
+end
+
 frames = {
 	-- 0 - IDLE
 	make_frame(
@@ -379,6 +387,13 @@ animations = {
 		}
 	},
 	punch = {
+		hits = {
+			{
+				hitstun = 3,
+				pushback = 3,
+				type = 0,
+			}
+		},
 		frames = {
 			{ frame = 2, movement = {0, 0}},
 			{ frame = 3, movement = {0, 0}},
@@ -389,6 +404,13 @@ animations = {
 		}
 	},
 	kick = {
+		hits = {
+			{
+				hitstun = 8,
+				pushback = 8,
+				type = 1,
+			}
+		},
 		frames = {
 			{ frame = 6, movement = {0, 0}},
 			{ frame = 6, movement = {0, 0}},
@@ -505,7 +527,7 @@ animations = {
 	},
 	hit_body = {
 		frames = {
-			{ frame = 22, movement = {-3, 0}},
+			{ frame = 22, movement = {0, 0}},
 			{ frame = 22, movement = {-3, 0}},
 			{ frame = 24, movement = {-3, 0}},
 			{ frame = 24, movement = {-2, 0}},
