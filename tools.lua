@@ -154,32 +154,32 @@ _update = function()
 			else
 				if _downp then
 					animation_tool.current_animation = positive_mod(animation_tool.current_animation - 1, #animation_names)
-					stop_animation_player(animation_tool.player)
+					animation_player_stop(animation_tool.player)
 					local _a  = animations[animation_names[animation_tool.current_animation+1]]
 					animation_tool.player.animation = _a
 					animation_tool.player.frame = 0
 				end
 				if _upp then
 					animation_tool.current_animation = (animation_tool.current_animation + 1) % #animation_names
-					stop_animation_player(animation_tool.player)
+					animation_player_stop(animation_tool.player)
 					local _a  = animations[animation_names[animation_tool.current_animation+1]]
 					animation_tool.player.animation = _a
 					animation_tool.player.frame = 0
 				end
 				if _rightp then
-					stop_animation_player(animation_tool.player)
-					animation_tool.player.frame = (animation_tool.player.frame + 1) % #animation_tool.player.animation
+					animation_player_stop(animation_tool.player)
+					animation_tool.player.frame = (animation_tool.player.frame + 1) % #animation_tool.player.animation.frames
 				end
 				if _leftp then
-					stop_animation_player(animation_tool.player)
-					animation_tool.player.frame = positive_mod(animation_tool.player.frame - 1, #animation_tool.player.animation)
+					animation_player_stop(animation_tool.player)
+					animation_tool.player.frame = positive_mod(animation_tool.player.frame - 1, #animation_tool.player.animation.frames)
 				end
 				if key_pressed == " " then
 					if not animation_tool.player.is_playing then
 						local _a  = animations[animation_names[animation_tool.current_animation+1]]
-						play_animation_player(animation_tool.player, _a, animation_tool.loop, 0)
+						animation_player_play(animation_tool.player, _a, animation_tool.loop, 0)
 					else
-						stop_animation_player(animation_tool.player)
+						animation_player_stop(animation_tool.player)
 					end
 				end
 			end
@@ -337,7 +337,7 @@ _draw = function()
 			_frame_y += _origin_y
 			--log(_frame_x)
 			if animation_tool.player.is_playing then
-				draw_animation_player(animation_tool.player, _frame_x, _frame_y)
+				animation_player_draw(animation_tool.player, _frame_x, _frame_y)
 			else
 				draw_frame(frames[_a.frames[_current_frame+1].frame+1], _frame_x, _frame_y)
 			end
@@ -348,7 +348,7 @@ _draw = function()
 
 			-- DRAW MENU
 			cursor(1, 1, 7)
-			print("".._animation_name.." (".._current_frame.."/"..#_a..")")
+			print("".._animation_name.." (".._current_frame.."/"..#_a.frames..")")
 
 			local _button_x = 1
 			local _button_y = 7
@@ -369,7 +369,7 @@ _draw = function()
 				local _text = ""
 				for _i, _f in ipairs(_a) do
 					_text = _text.."\t\t{ frame = ".._f.frame..", movement = {".._f.movement[1]..", ".._f.movement[2].."}},"
-					if (_i ~= #_a) _text = _text.."\n"
+					if (_i ~= #_a.frames) _text = _text.."\n"
 				end
 				printh(_text, "@clip");
 			end
@@ -401,7 +401,7 @@ _draw = function()
 			end
 
 			-- UPDATE ANIMATION
-			update_animation_player(animation_tool.player)
+			animation_player_update(animation_tool.player)
 		end
 
 		-- DRAW_MOUSE
@@ -412,6 +412,16 @@ _draw = function()
 	end
 
 	draw_log()
+
+	--[[
+	-- test AABB hit position computation
+	local _b1_minx, _b1_miny, _b1_maxx, _b1_maxy = 50, 50, 70, 90
+	local _b2_minx, _b2_miny, _b2_maxx, _b2_maxy = mouse_x, mouse_y, mouse_x + 30, mouse_y +10
+	rect(_b1_minx, _b1_miny, _b1_maxx, _b1_maxy, 7)
+	rect(_b2_minx, _b2_miny, _b2_maxx, _b2_maxy, 8)
+	local _hx, _hy = get_AABB_intersection(_b1_minx, _b1_miny, _b1_maxx, _b1_maxy, _b2_minx, _b2_miny, _b2_maxx, _b2_maxy)
+	draw_point(_hx, _hy)
+	]]
 
 	print(stat(7), 120, 1)
 end

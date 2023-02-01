@@ -10,6 +10,35 @@ for _key, _animation in pairs(animations) do
 	animation_bake_data(_animation)
 end
 
+-- HIT
+hit_animation = { 128, 128, 129, 129, 130, 130, 130 }
+hits = {}
+
+function hits_add(_hits, _type, _x, _y, _flip_x)
+	if (_type == 0) _flip_x = not _flip_x
+	local _x_offset = 0
+	if (_flip_x) _x_offset = -8
+	add(_hits, {
+		type = _type,
+		x = _x + _x_offset,
+		y = _y - 4,
+		flip = _flip_x,
+		frame = 0,
+	})
+end
+
+function hits_draw(_hits)
+	for _h in all(_hits) do
+		if (_h.type == 0) pal(12, 9)
+		spr(hit_animation[_h.frame+1], _h.x, _h.y, 1, 1, _h.flip)
+		pal()
+		_h.frame += 1
+		if _h.frame >= #hit_animation then
+			del(_hits, _h)
+		end
+	end
+end
+
 -- PLAYER
 function make_player(_id, _x)
 	return {
@@ -28,6 +57,7 @@ function make_player(_id, _x)
 		next_hit_id = -1,
 		current_inflicted_hit = nil,
 		being_hit_time = 0,
+		freeze_count = 0,
 		sm = make_sm(player_sm_definition),
 	}
 end
@@ -124,6 +154,8 @@ player_sm_definition = {
 	},
 	jump = {
 		enter = function(_player)
+			_player.current_hit_id = 0
+			_player.next_hit_id = 0
 			animation_player_play(_player.animation_player, animations.jump, false, 0)
 			_player.is_jumping = true
 		end,
@@ -150,6 +182,8 @@ player_sm_definition = {
 			end
 		end,
 		exit = function(_player)
+			_player.current_hit_id = -1
+			_player.next_hit_id = -1
 			_player.has_air_attacked = false
 			_player.is_jumping = false
 			_player.drawn_animation_player = _player.animation_player
@@ -191,7 +225,7 @@ function player_get_current_hit(_player)
 	local _animation = _player.drawn_animation_player.animation
 
 	if (_animation.hits) == nil or (_animation.hits[_player.current_hit_id+1] == nil) then
-		return { hitstun = 3, pushback = 3, type = 0 }
+		return { hitstun = 3, pushback = 3, type = 0, hitstop = 4 }
 	end
 
 	return _animation.hits[_player.current_hit_id+1]
@@ -203,7 +237,12 @@ function player_start(_player)
 end
 
 function player_update(_player)
-	sm_update(_player.sm, _player)
+	if _player.freeze_count > 0 then
+		_player.freeze_count -= 1
+		sm_dequeue_transitions(_player.sm, _player)
+	else
+		sm_update(_player.sm, _player)
+	end
 end
 
 function player_draw(_player)
@@ -214,13 +253,18 @@ function player_post_update(_player)
 	animation_player_update(_player.sub_animation_player)
 end
 
-function player_resolve_hit(_player)
+function player_resolve_hit(_player, _hit)
 	_player.next_hit_id += 1
+	_player.freeze_count = _hit.hitstop
 end
 
-function player_resolve_being_hit(_player, _hit)
+function player_resolve_being_hit(_player, _hit, _hit_x, _hit_y)
 	_player.current_inflicted_hit = _hit
+	_player.freeze_count = _hit.hitstop
 	sm_set_state(_player.sm, "hit")
+
+	hits_add(hits, 0, _hit_x, _hit_y, _player.flip_x)
+	sfx(0)
 end
 
 
@@ -336,6 +380,8 @@ function resolve_players_hit(_players)
 	local _p2_frame = player_get_current_animation_frame(_p2)
 	local _p1_to_p2_hit = nil
 	local _p2_to_p1_hit = nil
+	local _hit_position_x, _hit_position_y = 0, 0
+
 
 	for _i, _b1 in ipairs(_p1_frame.boxes) do
 		local _p1_box = make_absolute_box(_p1_frame, _b1, _p1.pos.x, _p1.pos.y, _p1.flip_x)
@@ -346,12 +392,14 @@ function resolve_players_hit(_players)
 				if collision.AABB_AABB(_p1_box.min_x, _p1_box.min_y, _p1_box.max_x, _p1_box.max_y, _p2_box.min_x, _p2_box.min_y, _p2_box.max_x, _p2_box.max_y) then
 					if _p1.current_hit_id == _p1.next_hit_id then
 						_p1_to_p2_hit = player_get_current_hit(_p1)
+						_hit_position_x, _hit_position_y = get_AABB_intersection(_p1_box.min_x, _p1_box.min_y, _p1_box.max_x, _p1_box.max_y, _p2_box.min_x, _p2_box.min_y, _p2_box.max_x, _p2_box.max_y)
 					end
 				end
 			elseif _p2_to_p1_hit == nil and _b2.type == BOXTYPE_HIT and _b1.type == BOXTYPE_HURT then
 				if collision.AABB_AABB(_p1_box.min_x, _p1_box.min_y, _p1_box.max_x, _p1_box.max_y, _p2_box.min_x, _p2_box.min_y, _p2_box.max_x, _p2_box.max_y) then
 					if _p2.current_hit_id == _p2.next_hit_id then
 						_p2_to_p1_hit = player_get_current_hit(_p2)
+						_hit_position_x, _hit_position_y = get_AABB_intersection(_p1_box.min_x, _p1_box.min_y, _p1_box.max_x, _p1_box.max_y, _p2_box.min_x, _p2_box.min_y, _p2_box.max_x, _p2_box.max_y)
 					end
 				end
 			end
@@ -359,12 +407,12 @@ function resolve_players_hit(_players)
 	end
 
 	if _p1_to_p2_hit ~= nil then
-		player_resolve_hit(_p1)
-		player_resolve_being_hit(_p2, _p1_to_p2_hit)
+		player_resolve_hit(_p1, _p1_to_p2_hit)
+		player_resolve_being_hit(_p2, _p1_to_p2_hit, _hit_position_x, _hit_position_y)
 	end
 	if _p2_to_p1_hit ~= nil then
-		player_resolve_hit(_p2)
-		player_resolve_being_hit(_p1, _p2_to_p1_hit)
+		player_resolve_hit(_p2, _p2_to_p1_hit)
+		player_resolve_being_hit(_p1, _p2_to_p1_hit, _hit_position_x, _hit_position_y)
 	end
 
 end
@@ -410,6 +458,8 @@ function _draw()
 	--draw_frame_boxes(_p1_frame, player1.pos.x, player1.pos.y, player1.flip_x)
 	--draw_frame_boxes(_p2_frame, player2.pos.x, player2.pos.y, player2.flip_x)
 
-	if (player1 ~= nil) player_post_update(player1)
-	if (player2 ~= nil) player_post_update(player2)
+	if (player1 ~= nil and player1.freeze_count <= 0) player_post_update(player1)
+	if (player2 ~= nil and player2.freeze_count <= 0) player_post_update(player2)
+
+	hits_draw(hits)
 end

@@ -1,45 +1,49 @@
 -- particles.lua
 
--- setting
-setting = {}
-setting.__index = setting
+-- range
+range_mt = {}
+range_mt.__index = range_mt
 
-function setting.new(_val, _dev)
+function range(_val, _dev)
   local _s = { val = _val, dev = _dev }
-  setmetatable(_s, setting)
+  setmetatable(_s, range_mt)
   return _s
 end
 
-function setting:compute_random()
+function range_mt:compute_random()
   return self.val + rnd(self.dev * 2.0) - self.dev
 end
 
--- emitter
-emitter = {}
-emitter.__index = emitter
-
-function emitter.new()
-  local _e = {}
-  setmetatable(_e, emitter)
-
-  _e.active = false
-  _e.to_spawn = 0
-  _e.settings = {
-    angle = setting.new( 0.0, 360.0 ),
+function make_emitter_settings()
+  return {
+    angle = range( 0.0, 360.0 ),
     distance = {
-      start = setting.new( 0.0, 0.0 ),
-      stop = setting.new( 1.0, 0.0 )
+      start = range( 0.0, 0.0 ),
+      stop = range( 1.0, 0.0 )
     },
-    life = setting.new( 10.0, 0.0 ),
-    rate = setting.new( 1.0, 0.0 ),
+    life = range( 10.0, 0.0 ),
+    rate = range( 1.0, 0.0 ),
     size = {
-      start = setting.new( 1.0, 0.0 ),
-      stop = setting.new( 1.0, 0.0 )
+      start = range( 1.0, 0.0 ),
+      stop = range( 1.0, 0.0 )
     },
     color = { 7, 6, 13, 5, 0 },
     easing = easing.linear,
     type = 0 -- 0 is rect, 1 is circle
   }
+end
+
+-- emitter
+emitter_mt = {}
+emitter_mt.__index = emitter_mt
+
+function emitter(_settings)
+  local _e = {}
+  setmetatable(_e, emitter_mt)
+
+  _e.active = false
+  _e.to_spawn = 0
+  _e.settings = _settings or make_emitter_settings()
 
   _e._particles = {}
   _e._next_spawn = 0.0
@@ -47,7 +51,7 @@ function emitter.new()
   return _e
 end
 
-function emitter:update(_x, _y, _dt)
+function emitter_mt:update(_x, _y, _dt)
   _dt = _dt or 1.0
 
   local _spawn_time = _dt
@@ -91,7 +95,7 @@ function emitter:update(_x, _y, _dt)
   end
 end
 
-function emitter:emit(_x, _y)
+function emitter_mt:emit(_x, _y)
   local _life = self.settings.life:compute_random()
   local _angle = self.settings.angle:compute_random() * D2P
   local _dir = vec2.new(cos(_angle), sin(_angle))
@@ -107,7 +111,7 @@ function emitter:emit(_x, _y)
   return particle.new(_x, _y, _life, _dir, _dist_start, _dist_stop, _size, _color, _easing, _type)
 end
 
-function emitter:draw()
+function emitter_mt:draw()
   for _i, _p in ipairs(self._particles) do
     if _p.current_life >= 0.0 then
       _p:draw()
@@ -116,9 +120,9 @@ function emitter:draw()
 end
 
 -- particle
-particle = {}
-particle.__index = particle
-function particle.new(_x, _y, _life, _direction, _distance_start, _distance_stop, _size, _color, _easing, _type)
+particle_mt = {}
+particle_mt.__index = particle_mt
+function particle(_x, _y, _life, _direction, _distance_start, _distance_stop, _size, _color, _easing, _type)
   local _p = {
     pos = vec2.new(_x, _y),
     current_life = 0.0,
@@ -130,11 +134,11 @@ function particle.new(_x, _y, _life, _direction, _distance_start, _distance_stop
     easing = _easing,
     type = _type
   }
-  setmetatable(_p, particle)
+  setmetatable(_p, particle_mt)
   return _p
 end
 
-function particle:draw()
+function particle_mt:draw()
   local _t = self.easing(clamp01(self.current_life / self.life))
   local _dist = lerp(self.distance[1], self.distance[2], _t)
   local _pos = self.pos:add(self.direction:mul(_dist))

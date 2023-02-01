@@ -392,6 +392,7 @@ animations = {
 				hitstun = 3,
 				pushback = 3,
 				type = 0,
+				hitstop = 3,
 			}
 		},
 		frames = {
@@ -409,6 +410,7 @@ animations = {
 				hitstun = 8,
 				pushback = 8,
 				type = 1,
+				hitstop = 5,
 			}
 		},
 		frames = {
