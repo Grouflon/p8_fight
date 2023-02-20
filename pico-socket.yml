@@ -1,0 +1,20 @@
+# 0x5f80-x5f9f -> game data (0x20 bytes)
+#   0x5f80 -> room id
+#   0x5f81 -> player id
+# 0x5fa0-0x5fcf -> p1 data (0x30 bytes)
+#   0x5fa0 -> joined
+#   0x5fa1 -> 10 times
+#     0x0 -> frame number
+#     0x1 -> input
+# 0x5fd0-0x5fff -> p2 data (0x30 bytes)
+#   0x5fd0 -> joined
+#   0x5fd1 -> 10 times
+#     0x0 -> frame number
+#     0x1 -> input
+
+roomIdIndex: 0 # 0x5f80
+playerIdIndex: 1 # 0x5f81
+playerDataIndicies:
+  - [] # no data for player 0
+  - [32, 33,34, 35,36, 37,38, 39,40, 41,42, 43,44, 45,46, 47,48, 49,50, 51,52]
+  - [80, 81,82, 83,84, 85,86, 87,88, 89,90, 91,92, 93,94, 95,96, 97,98, 99,100]

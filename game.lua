@@ -4,6 +4,9 @@ poke(0x5F5C, 255) -- kill autofire
 ground_height = 64
 stage_margin = 2
 start_offset = 20
+game_state = 0 -- 0 is menu, 1 is game
+_mode = 0 -- 0 is local, 1 is online
+online_room = 1
 
 -- BAKE
 for _key, _animation in pairs(animations) do
@@ -234,6 +237,7 @@ end
 function player_start(_player)
 	_player.drawn_animation_player = _player.animation_player
 	sm_set_state(_player.sm, "idle")
+	sm_dequeue_transitions(_player.sm, _player)
 end
 
 function player_update(_player)
@@ -424,16 +428,25 @@ players = { player1, player2 }
 
 if (player1 ~= nil) player_start(player1)
 if (player2 ~= nil) player_start(player2)
+resolve_players_flip(players)
 
 function _update()
-	if (player1 ~= nil) player_update(player1)
-	if (player2 ~= nil) player_update(player2)
 
-	if (player1 ~= nil and player2 ~= nil) then
-		resolve_players_push(players)
-		resolve_players_flip(players)
-		resolve_players_hit(players)
+	if game_state == 0 then
+		local _up = btn(2)
+		local _down = btn(3)
+	elseif game_state == 1 then
+		if (player1 ~= nil) player_update(player1)
+		if (player2 ~= nil) player_update(player2)
+
+		if (player1 ~= nil and player2 ~= nil) then
+			resolve_players_push(players)
+			resolve_players_flip(players)
+			resolve_players_hit(players)
+		end
 	end
+
+	
 end
 
 function _draw()
@@ -462,4 +475,14 @@ function _draw()
 	if (player2 ~= nil and player2.freeze_count <= 0) player_post_update(player2)
 
 	hits_draw(hits)
+
+	if game_state == 0 then
+
+		local _local_w = print("local", 0, -999)
+		local _online_text = "online: room "..online_room
+		local _online_w = print(_online_text, 0, -999)
+
+		print("local", 64 - _local_w*0.5, 80, 7)
+		print(_online_text, 64 - _online_w*0.5, 90, 7)
+	end
 end
